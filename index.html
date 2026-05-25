@@ -16,6 +16,13 @@
 </head>
 
 <body>
+  <!-- LOADING -->
+  <div id="loader">
+    <img src="https://upload.wikimedia.org/wikipedia/pt/d/d7/Logo_copa_2026.png" alt="Logo Copa 2026" />
+    <h2>BOLÃO DOS CRIAS</h2>
+    <p>Carregando experiência da Copa...</p>
+  </div>
+
   <div class="bg-overlay"></div>
 
   <div class="particles">
@@ -32,6 +39,7 @@
     </div>
 
     <nav>
+      <a href="#regras">Regras</a>
       <a href="#grupos">Grupos</a>
       <a href="#jogos">Jogos</a>
       <a href="#knockout">Mata-Mata</a>
@@ -51,36 +59,14 @@
       </div>
 
       <div class="countdown-card">
-
-  <span class="countdown-label">
-    Faltam para a Copa 2026
-  </span>
-
-  <div class="countdown">
-
-    <div>
-      <h3 id="days">00</h3>
-      <span>Dias</span>
-    </div>
-
-    <div>
-      <h3 id="hours">00</h3>
-      <span>Horas</span>
-    </div>
-
-    <div>
-      <h3 id="minutes">00</h3>
-      <span>Min</span>
-    </div>
-
-    <div>
-      <h3 id="seconds">00</h3>
-      <span>Seg</span>
-    </div>
-
-  </div>
-
-</div>
+        <span class="countdown-label">Faltam para a Copa 2026</span>
+        <div class="countdown">
+          <div><h3 id="days">00</h3><span>Dias</span></div>
+          <div><h3 id="hours">00</h3><span>Horas</span></div>
+          <div><h3 id="minutes">00</h3><span>Min</span></div>
+          <div><h3 id="seconds">00</h3><span>Seg</span></div>
+        </div>
+      </div>
 
       <div class="hero-stats">
         <div class="stat-box"><h3>48</h3><span>Seleções</span></div>
@@ -106,6 +92,32 @@
     </div>
   </section>
 
+  <section id="regras">
+    <div class="section-header">
+      <span>COMO FUNCIONA</span>
+      <h2 class="section-title">Regras do Bolão</h2>
+    </div>
+
+    <div class="rules-grid">
+      <div class="rule-card">
+        <h3>🎯 Placar exato</h3>
+        <p>Acertou exatamente o resultado do jogo: 5 pontos.</p>
+      </div>
+      <div class="rule-card">
+        <h3>✅ Vencedor certo</h3>
+        <p>Acertou quem vence, mas errou o placar: 3 pontos.</p>
+      </div>
+      <div class="rule-card">
+        <h3>🤝 Empate certo</h3>
+        <p>Acertou que o jogo terminaria empatado: 2 pontos.</p>
+      </div>
+      <div class="rule-card">
+        <h3>🏆 Mata-mata</h3>
+        <p>Preencha os placares eliminatórios para avançar vencedores e definir o campeão.</p>
+      </div>
+    </div>
+  </section>
+
   <section id="grupos">
     <div class="section-header">
       <span>FASE DE GRUPOS</span>
@@ -118,6 +130,25 @@
     <div class="section-header">
       <span>CALENDÁRIO</span>
       <h2 class="section-title">Jogos Oficiais</h2>
+    </div>
+
+    <div class="filters">
+      <input type="text" id="searchInput" placeholder="Buscar seleção, estádio ou cidade..." />
+      <select id="groupFilter">
+        <option value="">Todos os grupos</option>
+        <option value="Grupo A">Grupo A</option>
+        <option value="Grupo B">Grupo B</option>
+        <option value="Grupo C">Grupo C</option>
+        <option value="Grupo D">Grupo D</option>
+        <option value="Grupo E">Grupo E</option>
+        <option value="Grupo F">Grupo F</option>
+        <option value="Grupo G">Grupo G</option>
+        <option value="Grupo H">Grupo H</option>
+        <option value="Grupo I">Grupo I</option>
+        <option value="Grupo J">Grupo J</option>
+        <option value="Grupo K">Grupo K</option>
+        <option value="Grupo L">Grupo L</option>
+      </select>
     </div>
 
     <div class="round-selector">
@@ -173,22 +204,14 @@
   <section id="pdf">
     <div class="pdf-card">
       <h2>Exportar Palpites</h2>
-      <p>Baixe todos os jogos e palpites em PDF.</p>
+      <p>Baixe todos os jogos e palpites em PDF, compartilhe por link ou zere o bolão.</p>
       <button onclick="exportPDF()">Baixar PDF</button>
+      <button onclick="shareBolao()" class="secondary-action">Compartilhar Bolão</button>
+      <button onclick="resetBolao()" class="danger-action">Resetar Bolão</button>
     </div>
   </section>
 
   <canvas id="confettiCanvas"></canvas>
-
-  <div id="championScreen">
-    <div class="champion-content">
-      <img src="assets/—Pngtree—the fifa world cup trophy_23046083.png" class="champion-big-trophy" alt="Taça da Copa" />
-      <img id="championFlag" class="champion-flag" alt="Bandeira do campeão" />
-      <h1 id="championName">WORLD CHAMPION</h1>
-      <span>FIFA WORLD CUP 2026™</span>
-      <button onclick="closeChampionScreen()">CONTINUAR</button>
-    </div>
-  </div>
 
   <audio id="crowdAudio" src="https://assets.mixkit.co/active_storage/sfx/212/212-preview.mp3"></audio>
 </body>
