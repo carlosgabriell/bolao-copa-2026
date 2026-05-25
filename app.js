@@ -860,10 +860,41 @@ function saveScore(matchId){
 }
 
 function saveBet(matchId){
+
+  const homeInput =
+    document.querySelector(`#home-${matchId}`)
+
+  const awayInput =
+    document.querySelector(`#away-${matchId}`)
+
+  if(!homeInput || !awayInput) return
+
+  /* SE NÃO PREENCHER NADA */
+
+  if(homeInput.value === "" && awayInput.value === ""){
+
+    homeInput.value = 0
+    awayInput.value = 0
+  }
+
+  /* SE PREENCHER SÓ O TIME DA CASA */
+
+  if(homeInput.value !== "" && awayInput.value === ""){
+
+    awayInput.value = 0
+  }
+
+  /* SE PREENCHER SÓ O VISITANTE */
+
+  if(awayInput.value !== "" && homeInput.value === ""){
+
+    homeInput.value = 0
+  }
+
   saveScore(matchId)
+
   showToast("Palpite salvo com sucesso!")
 }
-
 function createEmptyStandings(){
   const standings = {}
 
@@ -990,10 +1021,48 @@ function renderMatches(){
   matchesContainer.innerHTML = ""
   roundTitle.innerText = `Rodada ${currentRound + 1}`
 
-  rounds[currentRound].forEach((match,index) => {
-    const matchId = getMatchId(currentRound, index)
-    const saved = getSavedScore(matchId)
-    const card = document.createElement("div")
+  const searchValue =
+    document.querySelector("#searchInput")?.value.toLowerCase() || ""
+
+  const groupValue =
+    document.querySelector("#groupFilter")?.value || ""
+
+  const filteredMatches =
+    rounds[currentRound].filter(match => {
+      const text =
+        `${match.group} ${match.home} ${match.away} ${match.stadium} ${match.city}`.toLowerCase()
+
+      const matchSearch =
+        text.includes(searchValue)
+
+      const matchGroup =
+        groupValue === "" || match.group === groupValue
+
+      return matchSearch && matchGroup
+    })
+
+  if(filteredMatches.length === 0){
+    matchesContainer.innerHTML = `
+      <div class="no-results">
+        Nenhum jogo encontrado.
+      </div>
+    `
+    return
+  }
+
+  filteredMatches.forEach(match => {
+    const realIndex =
+      rounds[currentRound].indexOf(match)
+
+    const matchId =
+      getMatchId(currentRound, realIndex)
+
+    const saved =
+      getSavedScore(matchId)
+
+    const card =
+      document.createElement("div")
+
     card.className = "match-card"
 
     card.innerHTML = `
@@ -1297,24 +1366,49 @@ function closeChampionScreen(){
 }
 
 async function exportPDF(){
+
   const { jsPDF } = window.jspdf
   const doc = new jsPDF()
 
-  doc.setFontSize(24)
-  doc.text("Bolão da Copa 2026", 20, 20)
+  let y = 20
 
-  let y = 35
+  doc.setFillColor(84,0,255)
+  doc.rect(0,0,210,40,"F")
+
+  doc.setTextColor(255,255,255)
+  doc.setFontSize(24)
+  doc.text("Bolão da Copa 2026",20,25)
+
+  y = 55
+
+  doc.setTextColor(17,17,17)
+  doc.setFontSize(16)
+  doc.text("Fase de Grupos",20,y)
+
+  y += 12
 
   rounds.forEach((round, roundIndex) => {
-    doc.setFontSize(16)
-    doc.text(`Rodada ${roundIndex + 1}`, 20, y)
-    y += 10
-    doc.setFontSize(10)
+
+    doc.setFontSize(13)
+    doc.setTextColor(84,0,255)
+    doc.text(`Rodada ${roundIndex + 1}`,20,y)
+
+    y += 8
 
     round.forEach((match, matchIndex) => {
-      const id = getMatchId(roundIndex, matchIndex)
-      const saved = getSavedScore(id)
-      doc.text(`${match.home} ${saved.home || "-"} x ${saved.away || "-"} ${match.away}`, 20, y)
+
+      const matchId = getMatchId(roundIndex, matchIndex)
+      const saved = getSavedScore(matchId)
+
+      doc.setTextColor(40,40,40)
+      doc.setFontSize(9)
+
+      doc.text(
+        `${match.group} | ${match.home} ${saved.home || "-"} x ${saved.away || "-"} ${match.away} | ${match.date}`,
+        20,
+        y
+      )
+
       y += 6
 
       if(y > 280){
@@ -1323,7 +1417,68 @@ async function exportPDF(){
       }
     })
 
-    y += 6
+    y += 5
+  })
+
+  if(y > 240){
+    doc.addPage()
+    y = 20
+  }
+
+  doc.setFontSize(16)
+  doc.setTextColor(84,0,255)
+  doc.text("Mata-Mata FIFA 2026",20,y)
+
+  y += 12
+
+  const knockoutStages = [
+    { title:"16-avos de Final", stage:"round16", total:16 },
+    { title:"Oitavas de Final", stage:"round8", total:8 },
+    { title:"Quartas de Final", stage:"quarter", total:4 },
+    { title:"Semifinal", stage:"semi", total:2 },
+    { title:"Final", stage:"final", total:1 }
+  ]
+
+  knockoutStages.forEach(stageInfo => {
+
+    doc.setFontSize(13)
+    doc.setTextColor(84,0,255)
+    doc.text(stageInfo.title,20,y)
+
+    y += 8
+
+    for(let i = 0; i < stageInfo.total; i++){
+
+      const home =
+        localStorage.getItem(`${stageInfo.stage}-${i}-team1`) || "A Definir"
+
+      const away =
+        localStorage.getItem(`${stageInfo.stage}-${i}-team2`) || "A Definir"
+
+      const homeGoals =
+        localStorage.getItem(`${stageInfo.stage}-${i}-home`) || "-"
+
+      const awayGoals =
+        localStorage.getItem(`${stageInfo.stage}-${i}-away`) || "-"
+
+      doc.setTextColor(40,40,40)
+      doc.setFontSize(9)
+
+      doc.text(
+        `${home} ${homeGoals} x ${awayGoals} ${away}`,
+        20,
+        y
+      )
+
+      y += 6
+
+      if(y > 280){
+        doc.addPage()
+        y = 20
+      }
+    }
+
+    y += 7
   })
 
   doc.save("bolao-copa-2026.pdf")
@@ -1351,6 +1506,13 @@ renderBracket()
 
 function updateCountdown(){
 
+  const daysEl = document.querySelector("#days")
+  const hoursEl = document.querySelector("#hours")
+  const minutesEl = document.querySelector("#minutes")
+  const secondsEl = document.querySelector("#seconds")
+
+  if(!daysEl || !hoursEl || !minutesEl || !secondsEl) return
+
   const worldCupDate =
     new Date("2026-06-11T00:00:00").getTime()
 
@@ -1362,10 +1524,10 @@ function updateCountdown(){
 
   if(distance <= 0){
 
-    document.querySelector("#days").innerText = "00"
-    document.querySelector("#hours").innerText = "00"
-    document.querySelector("#minutes").innerText = "00"
-    document.querySelector("#seconds").innerText = "00"
+    daysEl.innerText = "00"
+    hoursEl.innerText = "00"
+    minutesEl.innerText = "00"
+    secondsEl.innerText = "00"
 
     return
   }
@@ -1382,16 +1544,16 @@ function updateCountdown(){
   const seconds =
     Math.floor((distance / 1000) % 60)
 
-  document.querySelector("#days").innerText =
+  daysEl.innerText =
     String(days).padStart(2,"0")
 
-  document.querySelector("#hours").innerText =
+  hoursEl.innerText =
     String(hours).padStart(2,"0")
 
-  document.querySelector("#minutes").innerText =
+  minutesEl.innerText =
     String(minutes).padStart(2,"0")
 
-  document.querySelector("#seconds").innerText =
+  secondsEl.innerText =
     String(seconds).padStart(2,"0")
 
 }
@@ -1399,3 +1561,123 @@ function updateCountdown(){
 setInterval(updateCountdown,1000)
 
 updateCountdown()
+
+/* =========================
+   LOADING SCREEN
+========================= */
+function hideLoader(){
+  const loader = document.querySelector("#loader")
+  if(loader) loader.classList.add("hide")
+}
+
+window.addEventListener("load", () => {
+  setTimeout(hideLoader, 900)
+})
+
+setTimeout(hideLoader, 2500)
+
+/* =========================
+   FILTROS
+========================= */
+document.querySelector("#searchInput")?.addEventListener("input", renderMatches)
+document.querySelector("#groupFilter")?.addEventListener("change", renderMatches)
+
+/* =========================
+   RESETAR BOLÃO
+========================= */
+function resetBolao(){
+
+  const confirmReset =
+    confirm("Tem certeza que deseja apagar todos os palpites salvos?")
+
+  if(!confirmReset) return
+
+  Object.keys(localStorage).forEach(key => {
+    if(
+      key.includes("-home") ||
+      key.includes("-away") ||
+      key.includes("-team1") ||
+      key.includes("-team2")
+    ){
+      localStorage.removeItem(key)
+    }
+  })
+
+  championAlreadyShown = false
+
+  renderGroups()
+  renderMatches()
+  renderBracket()
+
+  showToast("Bolão resetado com sucesso!")
+}
+
+/* =========================
+   COMPARTILHAR BOLÃO POR LINK
+========================= */
+function shareBolao(){
+
+  const data = {}
+
+  Object.keys(localStorage).forEach(key => {
+    if(
+      key.includes("-home") ||
+      key.includes("-away") ||
+      key.includes("-team1") ||
+      key.includes("-team2")
+    ){
+      data[key] = localStorage.getItem(key)
+    }
+  })
+
+  const encoded =
+    btoa(unescape(encodeURIComponent(JSON.stringify(data))))
+
+  const link =
+    `${window.location.origin}${window.location.pathname}?bolao=${encoded}`
+
+  navigator.clipboard.writeText(link).then(() => {
+    showToast("Link do bolão copiado!")
+  }).catch(() => {
+    prompt("Copie o link do bolão:", link)
+  })
+}
+
+/* =========================
+   IMPORTAR BOLÃO PELO LINK
+========================= */
+function importBolaoFromURL(){
+
+  const params =
+    new URLSearchParams(window.location.search)
+
+  const encoded =
+    params.get("bolao")
+
+  if(!encoded) return
+
+  try{
+    const data =
+      JSON.parse(decodeURIComponent(escape(atob(encoded))))
+
+    Object.keys(data).forEach(key => {
+      localStorage.setItem(key, data[key])
+    })
+
+    window.history.replaceState(
+      {},
+      document.title,
+      window.location.pathname
+    )
+
+    renderGroups()
+    renderMatches()
+    renderBracket()
+
+    showToast("Bolão importado com sucesso!")
+  }catch(error){
+    console.error("Erro ao importar bolão", error)
+  }
+}
+
+importBolaoFromURL()
